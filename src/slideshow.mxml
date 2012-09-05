@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+  layout="vertical"
+  verticalAlign="middle"
+  backgroundGradientAlphas="[1.0, 1.0]"
+  backgroundGradientColors="[#17043B, #000000]"
+  applicationComplete="init()">
+
+<mx:Script>
+  <![CDATA[
+    // http://www.riacodes.com/flex/build-an-automatic-slideshow-with-flex/
+    import mx.effects.Iris;
+    import org.flex_pilot.FPBootstrap;
+
+    private var pictures:Array = ["1.png", "2.png", "3.png", "4.png"];
+    private var index:int = 0;
+    private var latches:Object = new Object();
+    private var duration:int = 0;
+
+    private function init():void {
+      // flexpilot
+      FPBootstrap.flex_pilotLibPath = '/FlexPilot.swf';
+      message.text = String(stage);
+      FPBootstrap.init(stage);
+    
+      // latch stuff
+      ExternalInterface.addCallback("WebDriverLatch", getLatchStatus);
+    
+      img.setStyle("completeEffect", Iris);
+
+      img.load("images/" + pictures[0]);
+      index ++;
+    }  
+
+    // what's called via the external interface 
+    public function getLatchStatus(s:String):String {
+       return latches[s];
+    }
+
+    public function setLatchStatus(l:String, v:String):void {
+       latches[l] = v;
+    }
+
+    private function timedImageChange():void {
+      duration = Math.ceil(Math.random() * 8) * 1000;
+
+      var timer:Timer = new Timer(duration, 1);
+      timer.addEventListener(TimerEvent.TIMER, changeImage);
+      timer.start();
+      
+      setLatchStatus("slideshow", "paused");
+      message.text = "Latch status: " + "paused";
+    }
+
+    private function changeImage(e:TimerEvent):void {
+      setLatchStatus("slideshow", "changing");
+      message.text = "Latch status: " + "changing";
+    
+      img.load("images/" + pictures[index]);
+      if(index < pictures.length -1)
+        index++;
+      else
+        index=0;
+        
+      setLatchStatus("slideshow", "changed");
+      message.text = "Latch status: " + "changed";
+    }
+  ]]>
+</mx:Script>
+
+  <mx:Image id="img"/>
+  <mx:Button id="button"
+             label="Next"
+             click="timedImageChange()"/>
+  <mx:Text id="message">
+      <mx:text>Latch status: </mx:text>
+  </mx:Text>
+
+            
+
+</mx:Application>
